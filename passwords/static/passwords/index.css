@@ -1,0 +1,9 @@
+.searchInputBox{
+    justify-content: center;
+    width: -webkit-fill-available;
+    margin-top: 4px;
+}
+.searchInput{
+   width: 65%;
+   outline: none;
+}
