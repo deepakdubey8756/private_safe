@@ -3,7 +3,22 @@
     width: -webkit-fill-available;
     margin-top: 4px;
 }
+html{
+    font-size: small;
+}
+
 .searchInput{
    width: 65%;
    outline: none;
+}
+
+.noteButton{
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: blue;
+}
+
+.form{
+    margin-top: 10vh;
 }

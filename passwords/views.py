@@ -1,7 +1,9 @@
-from django.shortcuts import render, HttpResponse
+from django.shortcuts import render, HttpResponse, redirect
+from .models import Note
 import random
 import array
-
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 
 MAX_LEN = 12 
 
@@ -43,5 +45,58 @@ def genpass():
         password = password + x
     return password
 
+
+@login_required
 def index(request):
-    return render(request, 'passwords/index.html')
+    if request.user.is_authenticated:
+        print(request.user)
+        note = Note.objects.filter(request.user)
+        total = len(note)
+        #calculating number of time this site is visited
+        num_visits = request.session.get('num_visits', 0)
+        request.session['num_visits'] = num_visits + 1
+        context = {"notes": note, "total": total, "visits":num_visits}
+        return render(request, 'passwords/index.html', context)
+    return redirect('login')
+
+@login_required
+def delete(request, id):
+    if request.method == "POST":
+        try:
+            note = Note.objects.get(id=id)
+            note.delete()
+            return redirect('/')
+        except Exception as e:
+            print(e)
+    return HttpResponse("Failed! Some Error Occured")
+
+@login_required
+def regen(request, id):
+    if request.method == "POST":
+        try:
+            note = Note.objects.get(id=id)
+            note.password = genpass()
+            note.save()
+            return redirect('/')
+        except Exception as e:
+            print(e)
+    return HttpResponse("Failed! Some error occured")
+
+@login_required
+def addPass(request):
+    if request.method == "POST":
+        name = request.POST["name"]
+        username = request.POST["username"]
+        password = request.POST["password"]
+        print({"name":name, "username": username, "password": password})
+        if name=="xyz" or username=="xyz":
+            return HttpResponse("Please fill the names and usernames correctly")
+        note = Note(author=request.user, name=name, username=username, password=password)
+        note.save()
+        return redirect('/')
+    context  = {"pass": genpass()}
+    return render(request, "passwords/newEntry.html", context)
+
+
+
+
