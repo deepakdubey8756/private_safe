@@ -1,8 +1,7 @@
 from django.shortcuts import render, HttpResponse, redirect
-from .models import Note
+from .models import Note, CountAcess
 import random
 import array
-from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 
 MAX_LEN = 12 
@@ -26,6 +25,7 @@ COMBINED_LIST = DIGITS + UPCASE_CHARACTERS + SYMBOLS + LOCASE_CHARACTERS
 
 
 def genpass():
+    """function to generate new passwords"""
     #taking one characters from every choices
     rand_digit = random.choice(DIGITS)
     rand_lower = random.choice(LOCASE_CHARACTERS)
@@ -50,12 +50,10 @@ def genpass():
 def index(request):
     if request.user.is_authenticated:
         print(request.user)
-        note = Note.objects.filter(request.user)
+        note = Note.objects.filter(author = request.user)
+        counts = CountAcess.objects.get(author = request.user)
         total = len(note)
-        #calculating number of time this site is visited
-        num_visits = request.session.get('num_visits', 0)
-        request.session['num_visits'] = num_visits + 1
-        context = {"notes": note, "total": total, "visits":num_visits}
+        context = {"notes": note, "total": total, "visits":counts.total}
         return render(request, 'passwords/index.html', context)
     return redirect('login')
 
