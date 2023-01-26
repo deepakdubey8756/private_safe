@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponse, redirect
 from .models import Note, CountAcess
 import random
+from django.contrib.auth.models import User
 import array
 from django.contrib.auth.decorators import login_required
 
@@ -49,12 +50,20 @@ def genpass():
 @login_required
 def index(request):
     if request.user.is_authenticated:
-        print(request.user)
-        note = Note.objects.filter(author = request.user)
-        counts = CountAcess.objects.get(author = request.user)
-        total = len(note)
-        context = {"notes": note, "total": total, "visits":counts.total}
-        return render(request, 'passwords/index.html', context)
+            print(request.user)
+            note = Note.objects.filter(author = request.user)
+            visits = 0
+            try:
+                counts = CountAcess.objects.get(author=request.user)
+                visits = counts.total+1
+            except CountAcess.DoesNotExist:
+                counts = CountAcess(author=request.user)
+                counts.save()
+                visits = 1
+            total = len(note)
+            context = {"notes": note, "total": total, "visits": visits}
+            return render(request, 'passwords/index.html', context)
+
     return redirect('login')
 
 @login_required
@@ -96,5 +105,18 @@ def addPass(request):
     return render(request, "passwords/newEntry.html", context)
 
 
+def signup(request):
+    if request.method  == 'POST' and not request.user.is_authenticated:
+        email = request.POST['email']
+        password = request.POST["password"]
+        username = list(email.split('@'))[0]
+        try:
+            user = User.objects.create_user(username, email, password)
+            user.save()
+            return redirect('login')
+        except Exception as e:
+            return HttpResponse(f"Operation failed! "+e)
+        print({"email": email, "password": password, "username": username})
+    return render(request, "registration/signup.html")
 
 
