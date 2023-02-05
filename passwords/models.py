@@ -1,7 +1,6 @@
 from django.db import models
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User 
 
-User=get_user_model()
 
 class Note(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -15,7 +14,7 @@ class Note(models.Model):
     
 class CountAcess(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    total = models.IntegerField(default=0)
+    total = models.IntegerField(default=1)
 
     def __str__(self):
         return self.author.username

@@ -1,70 +1,41 @@
 from django.shortcuts import render, HttpResponse, redirect
 from .models import Note, CountAcess
-import random
+from accounts.models import Profile
 from django.contrib.auth.models import User
-import array
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from utilities.genpass import genpass
 
-MAX_LEN = 12 
+def isprofile_verified(user):
+    profile = Profile.objects.filter(author=user)
+    if len(profile) > 0:
+        return profile[0].isVerfied
+    return False
 
-DIGITS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-
-LOCASE_CHARACTERS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h',
-                     'i', 'j', 'k', 'm', 'n', 'o', 'p', 'q',
-                     'r', 's', 't', 'u', 'v', 'w', 'x', 'y',
-                     'z']
-
-UPCASE_CHARACTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',
-                     'I', 'J', 'K', 'M', 'N', 'O', 'P', 'Q',
-                     'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y',
-                     'Z']
-
-SYMBOLS = ['@', '#', '$', '%', '=', ':', '?', '.', '/', '|', '~', '>',
-           '*', '(', ')', '<']
-
-COMBINED_LIST = DIGITS + UPCASE_CHARACTERS + SYMBOLS + LOCASE_CHARACTERS
-
-
-def genpass():
-    """function to generate new passwords"""
-    #taking one characters from every choices
-    rand_digit = random.choice(DIGITS)
-    rand_lower = random.choice(LOCASE_CHARACTERS)
-    rand_upper = random.choice(UPCASE_CHARACTERS)
-    rand_symb = random.choice(SYMBOLS)
-    temp_pass = rand_digit+rand_lower+rand_symb+rand_upper
-
-    #filling rest of the password with random characters
-    for x in range(MAX_LEN-4):
-        temp_pass = temp_pass + random.choice(COMBINED_LIST)
-
-    #shuffling the final array
-    temp_pass_list = array.array('u', temp_pass)
-    random.shuffle(temp_pass_list)
-    password = ""
-    for x in temp_pass_list:
-        password = password + x
-    return password
 
 
 @login_required
 def index(request):
     if request.user.is_authenticated:
-            print(request.user)
+            profile = Profile.objects.filter(author=request.user)
+            if not profile[0].isVerfied:
+                messages.add_message(request, messages.ERROR, "Please verify your email")
+                return redirect('accounts:login')
             note = Note.objects.filter(author = request.user)
             visits = 0
             try:
                 counts = CountAcess.objects.get(author=request.user)
-                visits = counts.total+1
+                counts.total += 1
+                counts.save()
+                visits = counts.total
             except CountAcess.DoesNotExist:
                 counts = CountAcess(author=request.user)
                 counts.save()
                 visits = 1
             total = len(note)
-            context = {"notes": note, "total": total, "visits": visits}
+            context = {"notes": note, "total": total, "visits": visits, "user": request.user}
             return render(request, 'passwords/index.html', context)
-
-    return redirect('login')
+    return redirect('accounts:login')
 
 @login_required
 def delete(request, id):
@@ -76,6 +47,7 @@ def delete(request, id):
         except Exception as e:
             print(e)
     return HttpResponse("Failed! Some Error Occured")
+
 
 @login_required
 def regen(request, id):
@@ -89,34 +61,27 @@ def regen(request, id):
             print(e)
     return HttpResponse("Failed! Some error occured")
 
+
 @login_required
 def addPass(request):
+    profile = Profile.objects.filter(author = request.user)
+    if len(profile) == 0:
+       messages.add_message("your email is not verified yet. Please login first")
+       return redirect("password:login")
+
     if request.method == "POST":
         name = request.POST["name"]
         username = request.POST["username"]
         password = request.POST["password"]
         print({"name":name, "username": username, "password": password})
         if name=="xyz" or username=="xyz":
-            return HttpResponse("Please fill the names and usernames correctly")
+            messages.add_message(request, messages.error, "please fill the form correctly")
+            return render(request, )
         note = Note(author=request.user, name=name, username=username, password=password)
         note.save()
         return redirect('/')
     context  = {"pass": genpass()}
     return render(request, "passwords/newEntry.html", context)
 
-
-def signup(request):
-    if request.method  == 'POST' and not request.user.is_authenticated:
-        email = request.POST['email']
-        password = request.POST["password"]
-        username = list(email.split('@'))[0]
-        try:
-            user = User.objects.create_user(username, email, password)
-            user.save()
-            return redirect('login')
-        except Exception as e:
-            return HttpResponse(f"Operation failed! "+e)
-        print({"email": email, "password": password, "username": username})
-    return render(request, "registration/signup.html")
 
 

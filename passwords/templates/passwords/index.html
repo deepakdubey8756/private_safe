@@ -7,23 +7,37 @@
 {% block content %} 
 
 <div class="container my-4 text-center ">
-  <h1>Secure, Anonymous, Stateless, Password Manager</h1>
-
+  <h1>Secure And Stateless Password Manager</h1>
   <div class="d-flex flex-row justify-content-around ">
-      <div class="my-2">
+      <div class="d-flex flex-row my-2">
+          <p>
           No. of entries:-- {{total}}
+          </p>
+          <p>
+            &nbsp; |   &nbsp; Total Visits--- {{visits}}
+          </p>
       </div>
       <div class="d-flex flex-row-reverse">
 
-          <form action="{% url 'logout' %}" name="myForm" method="POST">
-                  {% csrf_token %}
-                  <button class="noteButton" type="submit" >logout</button>
+          <form action="{% url 'accounts:logout' %}" name="myForm" method="POST">
+                  {% csrf_token %}  
+                  <button class="noteButton logoutButton" type="submit" >logout</button>
           </form>
           <p class="my-2"> | </p>
-          <a href="{% url "addPass" %}" class="p-2">New entry</a> 
+          <a href="{% url "password:addPass" %}" class="p-2">New entry</a> 
+          <p class="my-2"> | </p>
+          <a href="#" class="p-2">{{user.username}}</a> 
       </div>
+
+
   </div>
+  {% if messages %}
+  {% for message in messages %}
+      <p {% if message.tags %} class="{{message.tags}}" {% endif %}>{{ message }}</p>
+  {% endfor %}
+  {% endif %}
   <div class="my-4">
+    <div class="entry">
       <h4 class="my-4">List of Entries</h4>
       <div class="mx-4 flex-wrap text-start">
         <table class="table table-bordered">
@@ -45,11 +59,11 @@
               <td class="myText">{{note.password}}</td>
               <td class="d-flex justify-content-around">
                 <button class="noteButton copyButton" onclick="copyContent({{forloop.counter}})">Copy</button>
-                <form action="{% url 'regen' id=note.id %}" name="myForm" method="POST">
+                <form action="{% url 'password:regen' id=note.id %}" name="myForm" method="POST">
                   {% csrf_token %}
                   <button class="noteButton" type="submit" >Regenerate</button>
               </form>
-                <form action="{% url 'deletePass' id=note.id %}" name="myForm" method="POST">
+                <form action="{% url 'password:deletePass' id=note.id %}" name="myForm" method="POST">
                   {% csrf_token %}
                   <button class="noteButton" type="submit" >Delete</button>
               </form>
@@ -60,7 +74,6 @@
         </table>
       </div>
   </div>
-  
   </div>
 
 {% endblock %}

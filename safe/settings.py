@@ -1,8 +1,8 @@
 from pathlib import Path
-
+from safe.credentials import *
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-n%2#4_i$cs%4xj=@b!t#6pgjj8q&hfmp3a^d*xt6d%61f+cwy2'
+SECRET_KEY = SECRET_KEY
 
 DEBUG = True
 
@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'passwords',
+    'accounts'
 ]
 
 MIDDLEWARE = [
@@ -85,6 +86,13 @@ USE_I18N = True
 
 USE_TZ = True
 
+EMAIL_BACKEND = EMAIL_BACKEND
+EMAIL_HOST = EMAIL_HOST
+EMAIL_PORT = EMAIL_PORT
+EMAIL_USE_TLS = EMAIL_USE_TLS
+EMAIL_HOST_USER = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
@@ -97,5 +105,5 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'
 
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'accounts/login'
 

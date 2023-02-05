@@ -23,3 +23,10 @@ input{
     color: blue;
     text-decoration: underline;
 }
+
+.noteButton{
+    background: transparent;
+    border: none;
+    color: blue;
+    text-decoration: underline;
+}

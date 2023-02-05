@@ -8,12 +8,12 @@
     <div class="container my-4 text-center d-flex flex-column ">
         <div class="d-flex flex-row justify-content-around">
             <h3 class="my-2">Add new passwords</h3>
-            <form action="{% url 'logout' %}" name="myForm" method="POST">
+            <form action="{% url 'accounts:logout' %}" name="myForm" method="POST">
               {% csrf_token %}
               <button class="noteButton" type="submit" >logout</button>
             </form>
         </div>
-        <form action="{% url 'addPass' %}" name="myForm" method="POST">
+        <form action="{% url 'password:addPass' %}" name="myForm" method="POST">
             {% csrf_token %}
             <label for="name">name:</label><br>
             <input type="text" id="name" name="name" value="xyz"><br>
@@ -22,11 +22,13 @@
             <label for="password">password:</label><br>
             <input class="passwordGenerator" type="text" id="password" name="password" value={{pass}}><br>
             <div class="my-4 d-flex justify-content-around">
-            <a href="{% url 'addPass' %}">Regenerate</a>
+            <a href="{% url 'password:addPass' %}">Regenerate</a>
             <input  class="submitInput" type="submit" value="Submit">
             </div>
           </form>
     </div>
+
+
 {% endblock %}
 {% block script %}
     <script src="{% static 'passwords/index.js' %}">
