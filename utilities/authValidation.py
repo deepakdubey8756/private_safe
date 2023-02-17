@@ -1,7 +1,11 @@
 def signup_validation(values):
     result = {"status": True, "message": ""}
 
-    if values['email'] == None or values['password'] == None:
+    if values['email'] == ' ' or values['password'] == ' ':
+        result['status'] = False
+        result['message']  = "fill the forms correctly"
+    
+    elif values['email'] == '' or values['password'] == '':
         result['status'] = False
         result['message']  = "fill the forms correctly"
     

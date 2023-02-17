@@ -73,10 +73,10 @@ def addPass(request):
         name = request.POST["name"]
         username = request.POST["username"]
         password = request.POST["password"]
-        print({"name":name, "username": username, "password": password})
+        # print({"name":name, "username": username, "password": password})
         if name=="xyz" or username=="xyz":
             messages.add_message(request, messages.error, "please fill the form correctly")
-            return render(request, )
+            return render(request, "passwords/newEntry.html", {"pass": genpass()})
         note = Note(author=request.user, name=name, username=username, password=password)
         note.save()
         return redirect('/')

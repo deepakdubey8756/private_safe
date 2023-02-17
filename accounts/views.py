@@ -52,14 +52,14 @@ def signup(request):
         2. Check if email is unique and data is valid
         3. If step 2 failed then return to the page with error message.
         4. If everything is fine then save user and send email with token to confirm its identity."""
-    print("Here is everything that matters")
+    # print("Here is everything that matters")
     # if user is submiting data and it is not authenticated already then do the following...
     if request.method  == 'POST' and not request.user.is_authenticated:
 
         #1. Get the data from request and save it in a dictionary
         details = extract_email_details(request)
         details['user'] = False
-        print("deatils", details)
+        # print("deatils", details)
 
         #2. check if email is unique and data is valid.
         try:
@@ -116,7 +116,7 @@ def confirmPass(request, token):
             return redirect('login')
         
         #verifing user and changing authentication token
-        print("profile: ", profile)
+        # print("profile: ", profile)
         profile[0].isVerfied = True
         profile[0].auth_token = "none"
         profile[0].save()
@@ -221,7 +221,7 @@ def reset_confirm(request, token):
     if request.user.is_authenticated:
         return redirect('/')
     profile = Profile.objects.filter(auth_token=str(token))
-    print(profile)
+    # print(profile)
     if len(profile)==0:
         messages.add_message(request, messages.ERROR, "verificaiton failed. Retry")
         return redirect('accounts:reset')
