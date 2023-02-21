@@ -11,10 +11,3 @@ class Note(models.Model):
 
     def __str__(self):
         return self.name
-    
-class CountAcess(models.Model):
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    total = models.IntegerField(default=1)
-
-    def __str__(self):
-        return self.author.username

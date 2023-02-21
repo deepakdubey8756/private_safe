@@ -1,37 +1,29 @@
 from django.shortcuts import render, HttpResponse, redirect
-from .models import Note, CountAcess
+from .models import Note
 from accounts.models import Profile
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from utilities.genpass import genpass
 
-def isprofile_verified(user):
-    profile = Profile.objects.filter(author=user)
-    if len(profile) > 0:
-        return profile[0].isVerfied
-    return False
+# def isprofile_verified(user):
+#     profile = Profile.objects.filter(author=user)
+#     if len(profile) > 0:
+#         return profile[0].isVerfied
+#     return False
 
 
 
 @login_required
 def index(request):
     if request.user.is_authenticated:
+            pass
             profile = Profile.objects.filter(author=request.user)
             if not profile[0].isVerfied:
                 messages.add_message(request, messages.ERROR, "Please verify your email")
                 return redirect('accounts:login')
             note = Note.objects.filter(author = request.user)
             visits = 0
-            try:
-                counts = CountAcess.objects.get(author=request.user)
-                counts.total += 1
-                counts.save()
-                visits = counts.total
-            except CountAcess.DoesNotExist:
-                counts = CountAcess(author=request.user)
-                counts.save()
-                visits = 1
             total = len(note)
             context = {"notes": note, "total": total, "visits": visits, "user": request.user}
             return render(request, 'passwords/index.html', context)
@@ -39,6 +31,7 @@ def index(request):
 
 @login_required
 def delete(request, id):
+    pass
     if request.method == "POST":
         try:
             note = Note.objects.get(id=id)

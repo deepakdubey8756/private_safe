@@ -17,7 +17,7 @@ def signup_validation(values):
         result['status'] = False
         result['message'] = "Password length should be more than 8"
     
-    elif values['user']:
+    elif values['status'] == False:
         result['status'] = False
         result['message']  = "User already exists"
     return result

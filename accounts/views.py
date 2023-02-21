@@ -1,5 +1,4 @@
 from django.shortcuts import render, HttpResponse, redirect
-from .models import Profile
 from django.contrib.auth.models import User
 from django.contrib import messages
 from utilities.authValidation import signup_validation
@@ -9,7 +8,8 @@ from django.core.mail import EmailMessage
 import secrets
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-
+from .models import Profile
+from .forms import SinupForm
 
 def genToken():
     """Functions to generate url safe tokens"""
@@ -19,11 +19,16 @@ def extract_email_details(request):
     email = request.POST['email']
     password = request.POST["password"]
     confirmPass = request.POST["confirmPass"]
-    username = list(email.split('@'))[0]
+    username = '_'.join(list(email.split('@'))).split('.')[0]
     user = User.objects.filter(username=username)
+    status = True
     if len(user)>0:
-        username = username+'1'
-    return {"email": email, "password":password, "confirmPass": confirmPass, "username":username}
+        status = False
+    return {"email": email,
+            "password":password,
+            "confirmPass": confirmPass,
+            "username":username,
+            "status":status}
 
 
 def create_user(details):
@@ -35,7 +40,7 @@ def create_user(details):
         status = send_mail(details['email'], token, "registration/email_templates.html", "email confirmation", "password_confirm")
         print(status)
         if status:
-            profile = Profile(author = user, auth_token=token, isVerfied = False)
+            profile = Profile(author = user, auth_token=token, isVerfied = False, totalAccess=0)
             profile.save()
         return status
     except Exception as e:
@@ -46,61 +51,32 @@ def create_user(details):
 
 
 def signup(request):
-    """view to handle signing user
-    Functionality:
-        1. Get data from request and save it in a dictionary.
-        2. Check if email is unique and data is valid
-        3. If step 2 failed then return to the page with error message.
-        4. If everything is fine then save user and send email with token to confirm its identity."""
-    # print("Here is everything that matters")
-    # if user is submiting data and it is not authenticated already then do the following...
+    "Check signup validity, create user and send email for verification"
+    # # if user is submiting data and it is not authenticated already then do the following...
     if request.method  == 'POST' and not request.user.is_authenticated:
+        form = SinupForm(data = request.POST)
+        details = extract_email_details(request.POST)
 
-        #1. Get the data from request and save it in a dictionary
-        details = extract_email_details(request)
-        details['user'] = False
-        # print("deatils", details)
-
-        #2. check if email is unique and data is valid.
+        messages_content = "Please enter the details"
+        message_status = messages.INFO
         try:
-            user = User.objects.filter(email=details['email'])
-            if len(user) > 0:
-                details['user'] = True
-        except Exception as e:
-            print(e)
-
-        #validate credenctials and check if user is already exits or not.
-        checkPass = signup_validation(details)
-
-
-        #3. If everything is fine then create the user else return with error message
-
-        message_content = ""
-        message_status = ""
-        if checkPass['status'] == False:
-            message_content = checkPass['message']
-            message_status = messages.ERROR
-        else:
-            user = create_user(details)
-            if user:
-                message_content = "We have sended you a verification email. Please verify your email"
-                message_status = messages.SUCCESS
+            if form.is_valid() and details.status and details['confirmPass'] == details['password']:
+                status = create_user(details)
+                if  status :
+                    messages_content = "We have sended you verification email. Please verify."
+                    message_status = messages.SUCCESS
+                else:
+                    raise ValueError("Operation failed")
             else:
-                message_content = "Operation failed try again"
-                message_status = messages.ERROR
-
-        messages.add_message(request, message_status, message_content)
-        return render(request, 'registration/signup.html')
-
-
-    #4. handling case when user is already authenticated or request is not post
-  
-    if request.user.is_authenticated:
-        return redirect('/')
+                raise ValueError("Either email is not unique or input is not valid")
+        except Exception as e:
+            messages_content = e
+            message_status = messages.ERROR
     
-    messages.add_message(request, messages.INFO, 'please enter your email and passwords')
-    return render(request, "registration/signup.html")
 
+    form = SinupForm()
+    messages.add_message(request, message_status, messages_content)
+    return render(request, "registration/signup.html", {"form": form})
 
 def confirmPass(request, token):
     """this function confirms verification and login user"""
@@ -108,7 +84,6 @@ def confirmPass(request, token):
         print("User is authenticated", request.user)
         return redirect('/')
     try:
-
         # getting profile from token
         profile = Profile.objects.filter(auth_token = str(token))
         if len(profile) == 0:
@@ -119,12 +94,14 @@ def confirmPass(request, token):
         # print("profile: ", profile)
         profile[0].isVerfied = True
         profile[0].auth_token = "none"
+        profile[0].totalAccess = 0
         profile[0].save()
 
         #loging user and sending to home page.
         login(request, profile[0].author)
         messages.add_message(request, messages.SUCCESS, "Email successfully verified")
         return redirect('/')
+    
     except Exception as e:
         print(e)
         return HttpResponse("Operation failed!", e)
