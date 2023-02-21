@@ -3,52 +3,55 @@
 Note: This docs contains information related to authentication functionalities.
 
 Authentication contains ...	
-1. Registering user and email confirmation.
+1. Registering new user and email verification.
 2. Login and logout functionalities.
 3.  Password reset functionalitiy.
 
 >To read it's source code consider going to accounts/views.py
 
-## Registering user and email confirmation
-Following is the working of creating user.
-###1. Taking data and checking it's validation.
+## Design Docs.
 
- Taking data from `request` is done by `extract_email_details` function. 
- 
-###2.  Checking if email is unique and data is valid or not.
-  validation of email and  passwords are done by `signup_validation` function which takes details as   a dictionary containing `email`, `passwords` and other details.
-### If step 2 fails then returning signup page with error message.
-###3. If step 2 is fine then create profile and send email to verify user.
-profile creation is done by function `create_user` which takes neccesary details such as emails and passwords as input and create user. 
-To confirm email verification we are generating a unique `auth-token` and sending it to user through `smtp server`. 
-`Authentication token ` is stored in `profile model` (to know more about it consider reading models docs).
+### Urls
+	Authentication have following urls:
+	1. `Signup`: url for signup functionality.
+	2. `password_confirm/<slug:token>`: url for email verification 
+	3. `login`: url to login user
+	4. `logout`: url to logout user
+	5. 'reset`: url to reset user
+	6. `reset_confirm/<slug:token>`: url for cofirmation reset.
 
-###4. Email varification 
-Email verification is done by `confirmPass` which takes `auth-token` from `url` as a parameter and match it with tokens stored in any of profile model. if there is a match then set profile as verified else return `HTTP` response as operation failed.
+### views:
 
-###5. Login user and redirect to home page
+	Authentication have following urls:
+	1. `Signup`: view to register new user.
+	2. `password_confirm/<slug:token>`: view for email confirmation
+	3. `login`: view to loin new users
+	4. `logout`: view to logout users
+	5. 'reset`: view to reset user's password
+	6. `reset_confirm/<slug:token>`: to verify password reset and reset it.
+	7. `send_mail`: To send email to user
+	8. `genToken`: To generate new randome tokens for email confirmation
+	9. `extract_email_details`: utility to extract email details from request.
+	10. `create_user`: Utilitiy to create new user
+	
 
-After everything is fine then `login user` and `redirect` them to home page.
+### Models:
+Our Authentication part contains only one model `profile`
+Which contains details related to user.
+and how many times user accessed the page
 
 
-## Login and logout
-
-### Login
-Functionalities related to loging user is handled by login_view function which checks following things.
-1. Any profile with this email exists or not. 
-2. Profile is verified or not.
-3. Enter password is correct or not. 
-If everything is correct then it log user and redirect him to the home page.
-else it redirect to login page with error message.
-
-
-###Logout 
-Logout is handled with function logout view which lougout user and redirect request to login page.
-
-##3. Password reset
-
-Reseting password is done by two funcitons
-1. `reset_view` :   which first check  if is there any profile with this email and then send verification email to user's email to check whether it ts the user who is  trying to reset the password.
-
-2. `reset_confirm` :  which take sended `auth-token` and return a page to enter new passwords and then it reset password with verified autheticated token.
-
+### templates:
+it contains following templates:
+	1. `base.html`: To store basic boiler plate template.
+	2. `email_templates`: used to render sended email.
+	3. `login.html`: Use to render login page.
+	4. `pass_reset.html`: to render password reset page.
+	5. `password_reset` : to render page to reset passwords.
+	6. `signup.html`: To render signup page to register new user.
+	
+	
+	
+	
+	
+	

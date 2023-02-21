@@ -5,8 +5,15 @@
 <link href="{% static 'passwords/newEntry.css' %}" rel="stylesheet">
 {% endblock %}
 {% block content %}
+
     <div class="container my-4 text-center d-flex flex-column ">
+        {% if messages %}
+  {% for message in messages %}
+      <p {% if message.tags %} class="{{message.tags}}" {% endif %}>{{ message }}</p>
+  {% endfor %}
+  {% endif %}
         <div class="d-flex flex-row justify-content-around">
+            
             <h3 class="my-2">Add new passwords</h3>
             <form action="{% url 'accounts:logout' %}" name="myForm" method="POST">
               {% csrf_token %}
@@ -16,11 +23,14 @@
         <form action="{% url 'password:addPass' %}" name="myForm" method="POST">
             {% csrf_token %}
             <label for="name">name:</label><br>
-            <input type="text" id="name" name="name" value="xyz"><br>
-            <label for="username">username:</label><br>
-            <input type="text" id="username" name="username" value="xyz"><br>
-            <label for="password">password:</label><br>
-            <input class="passwordGenerator" type="text" id="password" name="password" value={{pass}}><br>
+            {{form.name}}
+            <br><label for="username">username:</label><br>
+            {{form.username}}
+            <br><label for="password">password:</label><br>
+            {{form.password}}
+            <br>
+            <strong>Recomended</strong><br>
+            <p>{{pass}}<p>
             <div class="my-4 d-flex justify-content-around">
             <a href="{% url 'password:addPass' %}">Regenerate</a>
             <input  class="submitInput" type="submit" value="Submit">
@@ -31,5 +41,6 @@
 
 {% endblock %}
 {% block script %}
-    <script src="{% static 'passwords/index.js' %}">
+{% load static %}
+    <script src="{% static 'passwords/newEntry.js' %}">
 {% endblock %}

@@ -5,33 +5,26 @@ from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from utilities.genpass import genpass
+from .forms import NoteForm
 
-# def isprofile_verified(user):
-#     profile = Profile.objects.filter(author=user)
-#     if len(profile) > 0:
-#         return profile[0].isVerfied
-#     return False
 
 
 
 @login_required
 def index(request):
-    if request.user.is_authenticated:
-            pass
-            profile = Profile.objects.filter(author=request.user)
-            if not profile[0].isVerfied:
-                messages.add_message(request, messages.ERROR, "Please verify your email")
-                return redirect('accounts:login')
-            note = Note.objects.filter(author = request.user)
-            visits = 0
-            total = len(note)
-            context = {"notes": note, "total": total, "visits": visits, "user": request.user}
-            return render(request, 'passwords/index.html', context)
-    return redirect('accounts:login')
+    profile = Profile.objects.get(author=request.user)
+    if not profile.isVerfied:
+        messages.add_message(request, messages.ERROR, "Please verify your email")
+        return redirect('accounts:reset')
+    note = Note.objects.filter(author = request.user)
+    profile.totalAccess = profile.totalAccess + 1
+    profile.save()
+    context = {"notes": note, "total": len(note), "visits": profile.totalAccess, "user": request.user}
+    return render(request, 'passwords/index.html', context)
+
 
 @login_required
 def delete(request, id):
-    pass
     if request.method == "POST":
         try:
             note = Note.objects.get(id=id)
@@ -58,22 +51,25 @@ def regen(request, id):
 @login_required
 def addPass(request):
     profile = Profile.objects.filter(author = request.user)
-    if len(profile) == 0:
-       messages.add_message("your email is not verified yet. Please login first")
-       return redirect("password:login")
 
+    if len(profile) == 0 or not profile[0].isVerfied:
+       messages.add_message("Please verify your email first")
+       return redirect("accounts:reset")
+    
     if request.method == "POST":
-        name = request.POST["name"]
-        username = request.POST["username"]
-        password = request.POST["password"]
-        # print({"name":name, "username": username, "password": password})
-        if name=="xyz" or username=="xyz":
-            messages.add_message(request, messages.error, "please fill the form correctly")
-            return render(request, "passwords/newEntry.html", {"pass": genpass()})
-        note = Note(author=request.user, name=name, username=username, password=password)
-        note.save()
-        return redirect('/')
-    context  = {"pass": genpass()}
+        form = NoteForm(data = request.POST)
+        name = request.POST['name']
+        username = request.POST['username']
+        password = request.POST['password']
+        print("name:", name, "username: ", username, "password: ", password)
+        if form.is_valid():
+            note = Note(author=request.user, name=name, username=username, password=password)
+            note.save()
+            return redirect('/')
+        else:
+            messages.add_message(request, messages.ERROR, "please fill the form correctly")
+    form = NoteForm()
+    context  = {"pass": genpass(), "form": form}
     return render(request, "passwords/newEntry.html", context)
 
 

@@ -1,17 +1,11 @@
 # Private Safe
 
-  
+Private Safe is a website written in `django` to manage passwords.
+It uses  `advanced email authentication` to authenticate user.
+It uses `python secrets` to generate random super secure passwords.
+It remembers `ip addresses` for aditional security.
 
-A simple website written in `django` to store `username` and `passwords`.
-
-It comes with full custom authentication and authorization to secure user credentials from being stolen.
-
-  
-
-## Installation
-
-  
-
+## Installation:
 Clone the source code into desired directory and then run following commands.
 
   
@@ -40,18 +34,23 @@ SECRET_KEY = 'django-insecure-n%2#4_i$cs%4xj=@b!t#6pgjj8q&hfmp3a^d*xt6d%61f+cwy2
 #Now run the project
 python3 manage.py runserver
 ```
-  
 
-## Application Details
 
-Private safe is manly used to store and maintain username and passwords.
-It comes with full user authentication for security.
 
->>For more technical and design details consider reading docs.
+# Demo 
+Visit here to watch it's full functionality.
 
+# Design docs:
+Whone application is divided into two components.
+1. `Authentication`:
+     To manage functionality related to user authentication and authorization.
+     to know more about it consider reading authentication docs.
+2. `Passwords`: 
+     To store different passwords.
+     To know more about it  consider reading passwords docs.
+     
 
 ## Contributing
-
 
 Pull requests are welcome. For major changes, please open an issue first
 

@@ -7,3 +7,4 @@ const copyContent = async (value) => {
       alert("Failed to copy. Check your browser's settings");
     }
 }
+

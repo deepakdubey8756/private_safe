@@ -9,17 +9,19 @@ import secrets
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from .models import Profile
-from .forms import SinupForm
+from .forms import SinupForm, LoginForm
+import re
 
 def genToken():
     """Functions to generate url safe tokens"""
     return secrets.token_urlsafe()
 
 def extract_email_details(request):
-    email = request.POST['email']
-    password = request.POST["password"]
-    confirmPass = request.POST["confirmPass"]
-    username = '_'.join(list(email.split('@'))).split('.')[0]
+    email = request['email']
+    password = request["password"]
+    confirmPass = request["confirmPass"]
+    r = re.split(r'[@\.]', email)
+    username = '_'.join(r)
     user = User.objects.filter(username=username)
     status = True
     if len(user)>0:
@@ -37,15 +39,16 @@ def create_user(details):
         user = User.objects.create_user(details['username'], details['email'], details['password'])
         user.save()
         token = genToken()
-        status = send_mail(details['email'], token, "registration/email_templates.html", "email confirmation", "password_confirm")
-        print(status)
-        if status:
+        # status = send_mail(details['email'], token, "registration/email_templates.html", "email confirmation", "password_confirm")
+        messages_status = True
+        message_content = "Every thing went fine"
+        if messages_status:
             profile = Profile(author = user, auth_token=token, isVerfied = False, totalAccess=0)
             profile.save()
-        return status
+            message_content = "Everything went fine"
     except Exception as e:
-        print("The problem is here", e)
-        return False
+        message_content = e
+    return {"message_content":message_content, "message_status": messages_status}
 
 
 
@@ -53,27 +56,28 @@ def create_user(details):
 def signup(request):
     "Check signup validity, create user and send email for verification"
     # # if user is submiting data and it is not authenticated already then do the following...
+    messages_content = "Please enter the details"
+    message_status = messages.INFO
     if request.method  == 'POST' and not request.user.is_authenticated:
         form = SinupForm(data = request.POST)
         details = extract_email_details(request.POST)
-
-        messages_content = "Please enter the details"
-        message_status = messages.INFO
         try:
-            if form.is_valid() and details.status and details['confirmPass'] == details['password']:
+            if form.is_valid() and details['status'] and details['confirmPass'] == details['password']:
                 status = create_user(details)
-                if  status :
+                if  status['message_status'] :
                     messages_content = "We have sended you verification email. Please verify."
                     message_status = messages.SUCCESS
                 else:
-                    raise ValueError("Operation failed")
+                    raise ValueError(status["message_content"])
             else:
                 raise ValueError("Either email is not unique or input is not valid")
         except Exception as e:
             messages_content = e
             message_status = messages.ERROR
     
-
+    if request.user.is_authenticated:
+        return redirect('/')
+    
     form = SinupForm()
     messages.add_message(request, message_status, messages_content)
     return render(request, "registration/signup.html", {"form": form})
@@ -135,31 +139,42 @@ def login_view(request):
     """Function to handle logging user"""
     if request.user.is_authenticated:
         profile = Profile.objects.filter(author = request.user)
-        
         if len(profile) == 0 or not profile[0].isVerfied:
             logout(request)
-            messages.add_message(request, messages.ERROR, "Error login. Please reset your password")
+            messages.add_message(request, messages.ERROR, "Error login. verify your email")
             return redirect('accounts:reset')
         else:
             return redirect('/')
-    elif request.method == "POST" and not request.user.is_authenticated:
+    
+    message_status = messages.INFO
+    message_content = ""
+    if request.method == "POST" and not request.user.is_authenticated:
         email = request.POST['email']
         password  = request.POST['password']
         try:
-            user = User.objects.get(email=email)
-            if user.check_password(password):
-                login(request, user)
-                return redirect('/')
-            
+            form = LoginForm(data = request.POST)
+            if form.is_valid():
+                user = User.objects.get(email=email)
+                profile = Profile.objects.get(author = user)
+                if not user.check_password(password):
+                    raise ValueError("Enter the correct credentials")
+                
+                elif not profile.isVerfied:
+                    messages.add_message(request, messages.ERROR, "Please verify your email")
+                    return redirect("accounts:reset")
+                else:
+                    login(request, user)
+                    return redirect("/")
+            else:
+                raise ValueError("Data is not valid")
+
         except Exception as e:
-            print(e)
-        
-        messages.add_message(request, messages.ERROR, "Wrong credentials. Try again")
-        return render(request, "registration/login.html")
-         
-    else :
-        print("Rendering page")
-        return render(request, "registration/login.html")
+            message_status = messages.ERROR
+            message_content = e
+    
+    messages.add_message(request, message_status, message_content)
+    form = LoginForm()
+    return render(request, "registration/login.html", {"form": form})
     
 @login_required
 def logout_view(request):
@@ -180,12 +195,12 @@ def reset_view(request):
             messages.add_message(request, messages.ERROR, "User Not found! please enter correct email")
             return render(request, 'registration/pass_reset.html')
 
-        print("Everything is fine till here......")
+        # print("Everything is fine till here......")
         profile = Profile.objects.filter(author = user[0])[0]
         token = genToken()
         profile.auth_token = token
         profile.save()
-        print("Printing authentication token, ", profile.auth_token, 'token length', len(token))
+        # print("Printing authentication token, ", profile.auth_token, 'token length', len(token))
         status = send_mail(email, str(token), "registration/reset_pass_email.html", "password reset", "resetconfirm")
         if status:
             messages.add_message(request, messages.SUCCESS, "We have sended you a email please follow along")
