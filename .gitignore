@@ -3,3 +3,4 @@ myven
 migrations
 credentials.py
 roadmap
+db.sqlite3

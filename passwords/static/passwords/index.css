@@ -42,3 +42,8 @@ html{
     margin-top: 9px;
 }
 
+@media only screen and (max-width: 1000px) {
+    .mobile_navs{
+        flex-direction: column-reverse !important;
+    }
+  }
