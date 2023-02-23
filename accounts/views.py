@@ -39,16 +39,14 @@ def create_user(details):
         user = User.objects.create_user(details['username'], details['email'], details['password'])
         user.save()
         token = genToken()
-        # status = send_mail(details['email'], token, "registration/email_templates.html", "email confirmation", "password_confirm")
-        messages_status = True
-        message_content = "Every thing went fine"
-        if messages_status:
+        status = send_mail(details['email'], token, "registration/email_templates.html", "email confirmation", "password_confirm")
+        if status['message_status']:
             profile = Profile(author = user, auth_token=token, isVerfied = False, totalAccess=0)
             profile.save()
-            message_content = "Everything went fine"
+            status['message_content'] = "Profile is created"
     except Exception as e:
-        message_content = e
-    return {"message_content":message_content, "message_status": messages_status}
+        status['message_content'] = e
+    return status
 
 
 
@@ -85,14 +83,14 @@ def signup(request):
 def confirmPass(request, token):
     """this function confirms verification and login user"""
     if request.user.is_authenticated:
-        print("User is authenticated", request.user)
+        # print("User is authenticated", request.user)
         return redirect('/')
     try:
         # getting profile from token
         profile = Profile.objects.filter(auth_token = str(token))
         if len(profile) == 0:
             messages.add_message(request, messages.ERROR, "Invalid token please do reset password to reconfirm your email")
-            return redirect('login')
+            return redirect('accounts:login')
         
         #verifing user and changing authentication token
         # print("profile: ", profile)
@@ -113,6 +111,8 @@ def confirmPass(request, token):
 
 def send_mail(user_email, token, template_str, subject, domain):
     """Take email and generate token to send it to user"""
+    status = True
+    message_content = "Everything is fine"
     try:
         template = render_to_string(template_str,{
             "token": token,
@@ -129,10 +129,9 @@ def send_mail(user_email, token, template_str, subject, domain):
         )
         email.fail_silently = True
         email.send()
-        return True
     except Exception as e:
-        print(e)
-        return False
+        message_content = e
+    return {"message_status":status, "message_content": message_content}
     
 
 def login_view(request):
@@ -202,7 +201,7 @@ def reset_view(request):
         profile.save()
         # print("Printing authentication token, ", profile.auth_token, 'token length', len(token))
         status = send_mail(email, str(token), "registration/reset_pass_email.html", "password reset", "resetconfirm")
-        if status:
+        if status['message_status']:
             messages.add_message(request, messages.SUCCESS, "We have sended you a email please follow along")
         else:
             messages.add_message(request, messages.ERROR, "Operation failed. Retry")

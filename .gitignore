@@ -4,3 +4,4 @@ migrations
 credentials.py
 roadmap
 db.sqlite3
+.env

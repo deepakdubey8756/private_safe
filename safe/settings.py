@@ -1,12 +1,11 @@
 from pathlib import Path
-from safe.credentials import *
+from decouple import config
 BASE_DIR = Path(__file__).resolve().parent.parent
+DEBUG = config('DEBUG')
 
-SECRET_KEY = SECRET_KEY
-
-DEBUG = True
-
+SECRET_KEY = config("SECRET_KEY")
 ALLOWED_HOSTS = ["*"]
+
 
 
 INSTALLED_APPS = [
@@ -53,8 +52,12 @@ WSGI_APPLICATION = 'safe.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASSWORD'),
+        'HOST': config('DATABASE_HOST'),
+        'PORT': config('DATABASE_PORT'),
     }
 }
 
@@ -86,12 +89,14 @@ USE_I18N = True
 
 USE_TZ = True
 
-EMAIL_BACKEND = EMAIL_BACKEND
-EMAIL_HOST = EMAIL_HOST
-EMAIL_PORT = EMAIL_PORT
-EMAIL_USE_TLS = EMAIL_USE_TLS
-EMAIL_HOST_USER = EMAIL_HOST_USER
-EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
+EMAIL_BACKEND = config('EMAIL_BACKEND')
+EMAIL_HOST = config("EMAIL_HOST")
+EMAIL_PORT = config("EMAIL_PORT")
+EMAIL_USE_TLS = config("EMAIL_USE_TLS")
+
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
 
 
 # Static files (CSS, JavaScript, Images)
