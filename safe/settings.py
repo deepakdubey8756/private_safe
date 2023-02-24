@@ -1,10 +1,11 @@
 from pathlib import Path
-from decouple import config
+from . import credentials
 BASE_DIR = Path(__file__).resolve().parent.parent
-DEBUG = config('DEBUG')
 
-SECRET_KEY = config("SECRET_KEY")
-ALLOWED_HOSTS = ["*"]
+DEBUG = credentials.DEBUG
+
+SECRET_KEY = credentials.SECRET_KEY
+ALLOWED_HOSTS = ['127.0.0.1', '.herokuapp.com']
 
 
 
@@ -53,11 +54,11 @@ WSGI_APPLICATION = 'safe.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME'),
-        'USER': config('DATABASE_USER'),
-        'PASSWORD': config('DATABASE_PASSWORD'),
-        'HOST': config('DATABASE_HOST'),
-        'PORT': config('DATABASE_PORT'),
+        'NAME': credentials.DATABASE_NAME,
+        'USER': credentials.DATABASE_USER,
+        'PASSWORD': credentials.DATABASE_PASSWORD,
+        'HOST': credentials.DATABASE_HOST,
+        'PORT': credentials.DATABASE_PORT,
     }
 }
 
@@ -89,13 +90,13 @@ USE_I18N = True
 
 USE_TZ = True
 
-EMAIL_BACKEND = config('EMAIL_BACKEND')
-EMAIL_HOST = config("EMAIL_HOST")
-EMAIL_PORT = config("EMAIL_PORT")
-EMAIL_USE_TLS = config("EMAIL_USE_TLS")
+EMAIL_BACKEND = credentials.EMAIL_BACKEND
+EMAIL_HOST = credentials.EMAIL_HOST
+EMAIL_PORT = credentials.EMAIL_PORT
+EMAIL_USE_TLS = credentials.EMAIL_USE_TLS
 
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = credentials.EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = credentials.EMAIL_HOST_PASSWORD
 
 
 
@@ -111,4 +112,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/'
 
 LOGOUT_REDIRECT_URL = 'accounts/login'
-
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS=True
+SECURE_HSTS_PRELOAD=True
+SECURE_SSL_REDIRECT=True
+SECURE_REFERRER_POLICY="strict-origin"
+SECURE_BROWSER_XSS_FILTER=True
